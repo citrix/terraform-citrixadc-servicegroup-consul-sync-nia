@@ -1,0 +1,11 @@
+# Module directory in any sub-folder
+**/.terraform
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+*.tfstate.lock.info
+
+# .tfvars files
+*.tfvars
