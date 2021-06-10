@@ -1,9 +1,9 @@
-## Terraform citrixadc servicegroup Consul sync module for Network Infrastructure Automation (NIA)
+## Citrix ADC Consul-Terraform-Sync Module for Network Infrastructure Automation
+
+This Terraform module allows users to automatically create, update and delete Service groups in Citrix ADC that are synced with the Consul Terraform Sync framework.
 
 This Terraform module allows users to automatically create, update and delete Service groups in [Citrix ADC](https://docs.citrix.com/en-us/citrix-adc/current-release/getting-started-with-citrix-adc/communicate-with-clients-servers.html) that
-are synced with the [Consul Terraform Sync](https://www.consul.io/docs/nia) framework. Learn more about Consul Terraform Sync [here](https://www.hashicorp.com/blog/announcing-consul-terraform-sync-tech-preview)
-
-This will empower application teams to automatically add or remove new instances of services to Citrix ADC without the need of raising manual tickets to IT Admins/Networking teams to make necessary ADC configurations changes.
+are synced with the [Consul Terraform Sync](https://www.consul.io/docs/nia) framework.
 
 ## Feature
 
