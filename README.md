@@ -1,21 +1,24 @@
 ## Terraform citrixadc servicegroup Consul sync module for Network Infrastructure Automation (NIA)
 
-This Terraform module allows users to automatically create, update and delete Service groups in Citrix ADC that
-are synced with the [Consul Terraform Sync](https://www.consul.io/docs/nia) framework.
+This Terraform module allows users to automatically create, update and delete Service groups in [Citrix ADC](https://docs.citrix.com/en-us/citrix-adc/current-release/getting-started-with-citrix-adc/communicate-with-clients-servers.html) that
+are synced with the [Consul Terraform Sync](https://www.consul.io/docs/nia) framework. Learn more about Consul Terraform Sync [here](https://www.hashicorp.com/blog/announcing-consul-terraform-sync-tech-preview)
+
+This will empower application teams to automatically add or remove new instances of services to Citrix ADC without the need of raising manual tickets to IT Admins/Networking teams to make necessary ADC configurations changes.
 
 ## Feature
 
-The module will create a servicegroup for each Service and then bind to it servicemembers according to
+### **Adding or removing services to existing servicegroup**
+The module will create a servicegroup for each service and then bind to it servicemembers according to
 the number of instances for each service as sourced from the [Consul service discovery](https://www.consul.io/).
 
 This will result in servicegroups being in sync with the services sourced from Consul.
 Adding, deleting or modyfing services in Consul will result in servicegroups and its servicemembers
 reflecting these changes.
 
-The configuration offers only the backend portion of the configuration for the Citrix ADC.
+The configuration offers only the backend portion(services and servicegroup) of the configuration for the Citrix ADC.
 
 The user is expected to create frontend vservers and bind them to the servicegroups created in order to
-have a functional Load Balancing or Content Switching setup.
+have a functional Load Balancing or Content Switching setup in ADC. Here is the [sample ADC terraform config](https://github.com/citrix/terraform-citrixadc-servicegroup-consul-sync-nia/blob/master/example/additional_resources/resources.tf) which needs to be run seperately.
 
 ## Requirements
 
@@ -31,11 +34,9 @@ have a functional Load Balancing or Content Switching setup.
 
 | Name | Version |
 |------|---------|
-| citrixadc | >= 1.0.0 |
+| [citrixadc](https://registry.terraform.io/providers/citrix/citrixadc/latest) | >= 1.0.0 |
 
 ## Setup
-
-
 
 1. The user is expected to have the Consul service up and running and reachable through an ip address.
 2. The Consul Terraform Sync binary is installed
@@ -44,34 +45,23 @@ have a functional Load Balancing or Content Switching setup.
 
 ## Usage
 
-To use this module make sure the setup is complete as described in the previous section.
+To use this module ensure the above setup is complete.
 
-You need to edit the Consul Terraform Sync configuration file to match your needs.
+1. You need to edit the Consul Terraform Sync configuration file to match your needs.
+    * Set the consul address to the appropriate value.
+    * In the example we are running Consul on the local machine with Docker.
+    * For each service you want to register create a service block as shown in the example.
+    * Declare the terraform citrixadc provider as shown.
+    * Make sure to give the correct authentication credentials in the terraform\_provider block as shown in the example configuration.
+    * Lastly the task block is where all is tied together.Of note is the `source` attribute in this block. It must point to the filepath of this terraform module.
 
-Set the consul address to the appropriate value.
-In the example we are running Consul on the local machine with Docker.
+2. Having completed all the previous steps running the actual `consul-terraform-sync` binary is the last step as shown below
 
-For each service you want to register create a service block as shown in the example.
-
-Declare the terraform citrixadc provider as shown.
-
-Make sure to give the correct authentication credentials in the terraform\_provider block
-as shown in the example configuration.
-
-Lastly the task block is where all is tied together.
-Of note is the `source` attribute in this block.
-It must point to the filepath of this terraform module.
-
-Having completed all the previous steps running the actual `consul-terraform-sync` binary is the
-last step.
-
-Run like so
 ```bash
 consul-terraform-sync -config-file config.hcl
 ```
 
-After that the process will remain running and any changes to the Consul catalog
-that refer to the services being synced will be reflected on the ADC configuration.
+After that the process will remain running and any changes to the Consul catalog that refer to the services being synced will be reflected on the ADC configuration.
 
 **User Config for Consul Terraform Sync**
 
@@ -122,28 +112,17 @@ terraform_provider "citrixadc" {
 ```
 ## Extending the module
 
-The module uses a small subset of the services input variables attributes.
-Namely the name, address and port to create servicegroups and servicegroup members.
-
+The module uses a small subset of the services input variables attributes - name, address and port- to create servicegroups and servicegroup members.
 The user may wish to extend the module to fit his needs.
 
-For example you could have the frontend Virtual Servers created with dynamic blocks
-using the `for_each` construct of HCL.
+For example you could have the _frontend Virtual Servers_ created with dynamic blocks using the `for_each` construct of HCL. Or one could use the extra fields in the services input variable to dynamically _setup other attributes of the servicegroup or servicegroup members_.
 
-Or one could use the extra fields in the services input variable to dynamically
-setup other attributes of the servicegroup or servicegroup members.
+To get an idea of what is available you can look into the `variables.tf` file where the definition of the `services` variable is located.
 
-To get an idea of what is available you can look into the `variables.tf` file
-where the definition of the `services` variable is located.
+Take a note of the fact that after the run of the `consul-terraform-sync` command a directory will be created which will contain all the input variables'
+values. The path will be `sync-tasks/<task_name>` and you can view the `terraform.tfvars` file to view what the actual values are.
 
-Also of note is the fact that after the run of the `consul-terraform-sync`
-command a directory will be created which will contain all the input variables'
-values.
-
-The path will be `sync-tasks/<task_name>` and you can view the `terraform.tfvars` file to view
-what the actual values are.
-
-A sample of what this looks like is shown below
+A sample of what this looks like is shown below :
 ```hcl
 services = {
   "adc_svc_1.client-1.dc1" : {
